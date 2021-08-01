@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 import Tile from '../components/Tile';
 
-import { BoardState, Color, Piece, TileState } from '../util/interfaces';
+import { BoardState, Piece, TileState } from '../util/interfaces';
 import { getPawnMoveOptions, initialBoardState, movePieceToTile } from '../util/util';
 
 const Wrapper = styled.div`
@@ -14,7 +14,7 @@ const Wrapper = styled.div`
 `;
 
 const Board = () => {
-  const [ board, setBoard ] = useState(initialBoardState);
+  const [ board, setBoard ] = useState<BoardState>(initialBoardState);
   const [ activeTile, setActiveTile ] = useState<TileState | null>(null);
   const [ highlightedTiles, setHighlitedTiles ] = useState<Array<TileState>>([]);
 

@@ -2,7 +2,6 @@ import React from 'react';
 import styled from 'styled-components';
 
 import { ChessPiece, Piece } from '../util/interfaces';
-import { colors } from '../util/theme';
 
 import { Bishop, Pawn, Queen, Rook, King, Knight } from '../assets/icons';
 
