@@ -642,27 +642,46 @@ export const rowIndexConvert = (int: number) => {
 export const getPawnMoveOptions = (pawn: ChessPiece, board: BoardState) => {  
   const tileIndex: number | undefined = board.tiles.findIndex(t => t.piece?.id === pawn.id);
   const tile: TileState = board.tiles[tileIndex];
-
-  if (!tile) return [];
-
-  let options: Array<TileState> = [];
+  
+  // Tiles where the Pawn can move to
+  let moveOptions: Array<TileState> = [];
+  // Tiles where the Pawn can attack
+  let attackOptions: Array<TileState> = [];
+  
+  if (!tile) return { moveOptions, attackOptions };
 
   if (pawn.pieceColor === Color.WHITE) {
-    let option1 = board.tiles.find(t => t.column === tile.column && t.row === tile.row - 1);
-    let option2 = board.tiles.find(t => t.column === tile.column && t.row === tile.row - 2);
-    if (option1) options.push(option1);
-    if (pawn.moved) return options;
-    if (option2) options.push(option2);
+    let moveOption1 = board.tiles.find(t => t.column === tile.column && t.row === tile.row - 1);
+    if (moveOption1 && moveOption1.piece === null) moveOptions.push(moveOption1);
+
+    let attackOption1 = board.tiles.find(t => t.column === tile.column + 1 && t.row === tile.row - 1);
+    let attackOption2 = board.tiles.find(t => t.column === tile.column - 1 && t.row === tile.row - 1);
+    if (attackOption1 && attackOption1.piece && attackOption1.piece.pieceColor !== pawn.pieceColor) attackOptions.push(attackOption1);
+    if (attackOption2 && attackOption2.piece && attackOption2.piece.pieceColor !== pawn.pieceColor) attackOptions.push(attackOption2);
+    
+    // Pawns can only move 1 foward after they have moved before
+    if (pawn.moved) return { moveOptions, attackOptions };
+    
+    let moveOption2 = board.tiles.find(t => t.column === tile.column && t.row === tile.row - 2);
+    if (moveOption2 && moveOption2.piece === null) moveOptions.push(moveOption2);
   } 
   else {
-    let option1 = board.tiles.find(t => t.column === tile.column && t.row === tile.row + 1);
-    let option2 = board.tiles.find(t => t.column === tile.column && t.row === tile.row + 2);
-    if (option1) options.push(option1);
-    if (pawn.moved) return options;
-    if (option2) options.push(option2);
+    let moveOption1 = board.tiles.find(t => t.column === tile.column && t.row === tile.row + 1);
+    if (moveOption1 && moveOption1.piece === null) moveOptions.push(moveOption1);
+    
+    let attackOption1 = board.tiles.find(t => t.column === tile.column + 1 && t.row === tile.row + 1);
+    let attackOption2 = board.tiles.find(t => t.column === tile.column - 1 && t.row === tile.row + 1);
+    if (attackOption1 && attackOption1.piece && attackOption1.piece.pieceColor !== pawn.pieceColor) attackOptions.push(attackOption1);
+    if (attackOption2 && attackOption2.piece && attackOption2.piece.pieceColor !== pawn.pieceColor) attackOptions.push(attackOption2);
+
+    // Pawns can only move 1 foward after they have moved before
+    if (pawn.moved) return { moveOptions, attackOptions };
+    
+    let moveOption2 = board.tiles.find(t => t.column === tile.column && t.row === tile.row + 2);
+    if (moveOption2 && moveOption2.piece === null) moveOptions.push(moveOption2);
   }
 
-  return options;
+  return { moveOptions, attackOptions };
 }
 
 export const movePieceToTile = (board: BoardState, from: TileState, to: TileState) => {

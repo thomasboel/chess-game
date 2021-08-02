@@ -63,14 +63,15 @@ interface TileProps {
   active: boolean;
   handleTilePress: Function;
   highlighted: boolean;
+  highlightedAttack: boolean;
   row: number;
   column: number;
 }
 
-const Tile = ({ tile, active, handleTilePress, highlighted, row, column }: TileProps) => {
+const Tile = ({ tile, active, handleTilePress, highlighted, highlightedAttack, row, column }: TileProps) => {
   return (
     <Wrapper
-      backgroundColor={tile.tileColor === Color.BLACK ? colors.blackTile : colors.whiteTile}
+      backgroundColor={highlightedAttack ? colors.attackTile : tile.tileColor === Color.BLACK ? colors.blackTile : colors.whiteTile}
       borderColor={active ? '#505050' : colors.tileBorder}
       onClick={() => handleTilePress()}
     >

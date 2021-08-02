@@ -16,15 +16,24 @@ const Wrapper = styled.div`
 const Board = () => {
   const [ board, setBoard ] = useState<BoardState>(initialBoardState);
   const [ activeTile, setActiveTile ] = useState<TileState | null>(null);
-  const [ highlightedTiles, setHighlitedTiles ] = useState<Array<TileState>>([]);
+  const [ highlightedMoveTiles, setHighlitedMoveTiles ] = useState<Array<TileState>>([]);
+  const [ highlightedAttackTiles, setHighlitedAttackTiles ] = useState<Array<TileState>>([]);
 
   const resetActive = () => {
     setActiveTile(null);
-    setHighlitedTiles([]);
+    setHighlitedMoveTiles([]);
+    setHighlitedAttackTiles([]);
   }
 
   const pressTile = (tile: TileState) => {
     if (tile.piece) {
+      if (highlightedAttackTiles.includes(tile)) {
+        if (!activeTile) return;
+        const newBoard = movePieceToTile(board, activeTile, tile)
+        setBoard(newBoard);
+        resetActive();
+        return;  
+      }
       if (activeTile === tile) {
         resetActive();
       }
@@ -34,7 +43,7 @@ const Board = () => {
       }
     }
     else {
-      if (highlightedTiles.includes(tile)) {
+      if (highlightedMoveTiles.includes(tile)) {
         if (!activeTile) return;
         const newBoard = movePieceToTile(board, activeTile, tile)
         setBoard(newBoard);
@@ -48,17 +57,22 @@ const Board = () => {
 
   const showMoveOptions = (tile: TileState) => {
     if (tile.piece === null) {
-      setHighlitedTiles([]);
+      setHighlitedMoveTiles([]);
+      setHighlitedAttackTiles([]);
       return;
     }
 
     switch (tile.piece.piece) {
       case Piece.PAWN:
-        let tileOptions: Array<TileState> = getPawnMoveOptions(tile.piece, board);
-        setHighlitedTiles(tileOptions);
+        let tileOptions: {
+          moveOptions: Array<TileState>,
+          attackOptions: Array<TileState>,
+        } = getPawnMoveOptions(tile.piece, board);
+        setHighlitedMoveTiles(tileOptions.moveOptions);
+        setHighlitedAttackTiles(tileOptions.attackOptions);
         break;
       default:
-        setHighlitedTiles([]);
+        setHighlitedMoveTiles([]);
         break;
     }
   }
@@ -71,7 +85,8 @@ const Board = () => {
           tile={tile}
           active={activeTile === tile}
           handleTilePress={() => pressTile(tile)}
-          highlighted={highlightedTiles.find(t => t.id === tile.id) ? true : false}
+          highlighted={highlightedMoveTiles.find(t => t.id === tile.id) ? true : false}
+          highlightedAttack={highlightedAttackTiles.find(t => t.id === tile.id) ? true : false}
           column={index % 8 + 1}
           row={Math.ceil((index + 1) / 8)}
         />
