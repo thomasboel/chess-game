@@ -639,6 +639,18 @@ export const rowIndexConvert = (int: number) => {
   }
 }
 
+export const moveLog = (from: TileState, to: TileState) => {
+  from && to && console.log("" + columnToLetter(from.column) + rowIndexConvert(from.row) + " to " + columnToLetter(to.column) + rowIndexConvert(to.row))
+}
+
+export const attackLog = (from: TileState, to: TileState) => {
+  from && to && console.log("" + columnToLetter(from.column) + rowIndexConvert(from.row) + " takes on " + columnToLetter(to.column) + rowIndexConvert(to.row))
+}
+
+export const getTileAtOffset = (board: BoardState, reference: TileState, columnOffset: number, rowOffset: number): TileState | undefined => {
+  return board.tiles.find(tile => tile.column === reference.column + columnOffset && tile.row === reference.row + rowOffset);
+}
+
 export const getPawnMoveOptions = (pawn: ChessPiece, board: BoardState) => {  
   const tileIndex: number | undefined = board.tiles.findIndex(t => t.piece?.id === pawn.id);
   const tile: TileState = board.tiles[tileIndex];
@@ -651,34 +663,80 @@ export const getPawnMoveOptions = (pawn: ChessPiece, board: BoardState) => {
   if (!tile) return { moveOptions, attackOptions };
 
   if (pawn.pieceColor === Color.WHITE) {
-    let moveOption1 = board.tiles.find(t => t.column === tile.column && t.row === tile.row - 1);
+    let moveOption1 = getTileAtOffset(board, tile, 0, -1);
     if (moveOption1 && moveOption1.piece === null) moveOptions.push(moveOption1);
 
-    let attackOption1 = board.tiles.find(t => t.column === tile.column + 1 && t.row === tile.row - 1);
-    let attackOption2 = board.tiles.find(t => t.column === tile.column - 1 && t.row === tile.row - 1);
+    let attackOption1 = getTileAtOffset(board, tile, 1, -1);
+    let attackOption2 = getTileAtOffset(board, tile, -1, -1);
     if (attackOption1 && attackOption1.piece && attackOption1.piece.pieceColor !== pawn.pieceColor) attackOptions.push(attackOption1);
     if (attackOption2 && attackOption2.piece && attackOption2.piece.pieceColor !== pawn.pieceColor) attackOptions.push(attackOption2);
     
     // Pawns can only move 1 foward after they have moved before
     if (pawn.moved) return { moveOptions, attackOptions };
     
-    let moveOption2 = board.tiles.find(t => t.column === tile.column && t.row === tile.row - 2);
+    let moveOption2 = getTileAtOffset(board, tile, 0, -2);
     if (moveOption2 && moveOption2.piece === null) moveOptions.push(moveOption2);
   } 
   else {
-    let moveOption1 = board.tiles.find(t => t.column === tile.column && t.row === tile.row + 1);
+    let moveOption1 = getTileAtOffset(board, tile, 0, 1);
     if (moveOption1 && moveOption1.piece === null) moveOptions.push(moveOption1);
     
-    let attackOption1 = board.tiles.find(t => t.column === tile.column + 1 && t.row === tile.row + 1);
-    let attackOption2 = board.tiles.find(t => t.column === tile.column - 1 && t.row === tile.row + 1);
+    let attackOption1 = getTileAtOffset(board, tile, 1, 1);
+    let attackOption2 = getTileAtOffset(board, tile, -1, 1);
     if (attackOption1 && attackOption1.piece && attackOption1.piece.pieceColor !== pawn.pieceColor) attackOptions.push(attackOption1);
     if (attackOption2 && attackOption2.piece && attackOption2.piece.pieceColor !== pawn.pieceColor) attackOptions.push(attackOption2);
 
     // Pawns can only move 1 foward after they have moved before
     if (pawn.moved) return { moveOptions, attackOptions };
     
-    let moveOption2 = board.tiles.find(t => t.column === tile.column && t.row === tile.row + 2);
+    let moveOption2 = getTileAtOffset(board, tile, 0, 2);
     if (moveOption2 && moveOption2.piece === null) moveOptions.push(moveOption2);
+  }
+
+  return { moveOptions, attackOptions };
+}
+
+export const getKnightMoveOptions = (knight: ChessPiece, board: BoardState) => {
+  const tileIndex: number | undefined = board.tiles.findIndex(t => t.piece?.id === knight.id);
+  const tile: TileState = board.tiles[tileIndex];
+
+  // Tiles where the Pawn can move to
+  let moveOptions: Array<TileState> = [];
+  // Tiles where the Pawn can attack
+  let attackOptions: Array<TileState> = [];
+  
+  if (!tile) return { moveOptions, attackOptions };
+  
+  let options: Array<TileState> = [];
+
+  // ===== Moves =====
+  let option1 = getTileAtOffset(board, tile, 1, -2);
+  if (option1) options.push(option1);
+  let option2 = getTileAtOffset(board, tile, -1, -2);
+  if (option2) options.push(option2);
+  let option3 = getTileAtOffset(board, tile, 1, 2);
+  if (option3) options.push(option3);
+  let option4 = getTileAtOffset(board, tile, -1, 2);
+  if (option4) options.push(option4);
+  let option5 = getTileAtOffset(board, tile, 2, -1);
+  if (option5) options.push(option5);
+  let option6 = getTileAtOffset(board, tile, -2, -1);
+  if (option6) options.push(option6);
+  let option7 = getTileAtOffset(board, tile, 2, 1);
+  if (option7) options.push(option7);
+  let option8 = getTileAtOffset(board, tile, -2, 1);
+  if (option8) options.push(option8);
+  
+  for (let option of options) {
+    if (option.piece && option.piece.pieceColor !== knight.pieceColor) {
+      attackOptions.push(option);
+    }
+    else if (option.piece && option.piece.pieceColor === knight.pieceColor) {
+      // Don't take your own pieces!
+    }
+    else {
+      moveOptions.push(option);
+    }
   }
 
   return { moveOptions, attackOptions };

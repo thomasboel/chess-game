@@ -3,8 +3,8 @@ import styled from 'styled-components';
 
 import Tile from '../components/Tile';
 
-import { BoardState, Piece, TileState } from '../util/interfaces';
-import { getPawnMoveOptions, initialBoardState, movePieceToTile } from '../util/util';
+import { BoardState, Color, Piece, TileState } from '../util/interfaces';
+import { attackLog, getKnightMoveOptions, getPawnMoveOptions, initialBoardState, moveLog, movePieceToTile } from '../util/util';
 
 const Wrapper = styled.div`
   display: grid;
@@ -18,40 +18,54 @@ const Board = () => {
   const [ activeTile, setActiveTile ] = useState<TileState | null>(null);
   const [ highlightedMoveTiles, setHighlitedMoveTiles ] = useState<Array<TileState>>([]);
   const [ highlightedAttackTiles, setHighlitedAttackTiles ] = useState<Array<TileState>>([]);
+  const [ colorToMove, setColorToMove ] = useState(Color.WHITE);
 
   const resetActive = () => {
     setActiveTile(null);
     setHighlitedMoveTiles([]);
     setHighlitedAttackTiles([]);
   }
+  
+  const move = (from: TileState, to: TileState) => {
+    // Also save some info and do checks
+    const newBoard = movePieceToTile(board, from, to);
+    setBoard(newBoard);
+    resetActive();
+    setColorToMove(colorToMove === Color.WHITE ? Color.BLACK : Color.WHITE);
+  }
+  
+  const attack = (attacker: TileState, target: TileState) => {
+    // Also save some info and do checks
+    move(attacker, target);
+  }
 
   const pressTile = (tile: TileState) => {
-    if (tile.piece) {
-      if (highlightedAttackTiles.includes(tile)) {
-        if (!activeTile) return;
-        const newBoard = movePieceToTile(board, activeTile, tile)
-        setBoard(newBoard);
-        resetActive();
-        return;  
-      }
-      if (activeTile === tile) {
-        resetActive();
-      }
-      else {
+    // ===== Choosing the active tile =====
+    if (!activeTile) {
+      if (tile.piece && tile.piece.pieceColor === colorToMove) {
         setActiveTile(tile);
         showMoveOptions(tile);
       }
     }
-    else {
-      if (highlightedMoveTiles.includes(tile)) {
-        if (!activeTile) return;
-        const newBoard = movePieceToTile(board, activeTile, tile)
-        setBoard(newBoard);
-        resetActive();
-      } 
-      else {
-        resetActive();
-      }
+    if (tile !== activeTile && tile.piece && tile.piece.pieceColor === colorToMove) {
+      setActiveTile(tile);
+      showMoveOptions(tile);
+    }
+
+    // If activeTile is not set at this point, the tile pressed was not a white piece
+    if (!activeTile) return;
+    
+    // ===== Attacking the enemy =====
+    if (highlightedAttackTiles.includes(tile)) {
+      attackLog(activeTile, tile);
+      attack(activeTile, tile);
+      return;
+    }
+
+    // ===== Moving your piece =====
+    else if (highlightedMoveTiles.includes(tile)) {
+      moveLog(activeTile, tile);
+      move(activeTile, tile);
     }
   }
 
@@ -61,20 +75,25 @@ const Board = () => {
       setHighlitedAttackTiles([]);
       return;
     }
+    
+    if (colorToMove !== tile.piece.pieceColor) return;
+
+    let tileOptions: { 
+      moveOptions: Array<TileState>, 
+      attackOptions: Array<TileState> 
+    } = { moveOptions: [], attackOptions: [] };
 
     switch (tile.piece.piece) {
       case Piece.PAWN:
-        let tileOptions: {
-          moveOptions: Array<TileState>,
-          attackOptions: Array<TileState>,
-        } = getPawnMoveOptions(tile.piece, board);
-        setHighlitedMoveTiles(tileOptions.moveOptions);
-        setHighlitedAttackTiles(tileOptions.attackOptions);
+        tileOptions = getPawnMoveOptions(tile.piece, board);
         break;
-      default:
-        setHighlitedMoveTiles([]);
+      case Piece.KNIGHT:
+        tileOptions = getKnightMoveOptions(tile.piece, board);
         break;
     }
+
+    setHighlitedMoveTiles(tileOptions.moveOptions);
+    setHighlitedAttackTiles(tileOptions.attackOptions);
   }
 
   return (
