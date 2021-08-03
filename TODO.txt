@@ -1,0 +1,65 @@
+// ===== KING ===== //
+isKingInCheckIfMove()
+getCastleMoves()
+
+// ===== Game State ===== //
+/**
+ * A history snapshot
+ */
+interface ~Snapshot {
+    public squares: Array<Array<Piece>>;
+    public lastMoves: Array<Move>;
+
+    // For castling
+    public whiteKingMoved: boolean;
+    public leftWhiteRookMoved: boolean;
+    public rightWhiteRookMoved: boolean;
+
+    public blackKingMoved: boolean;
+    public leftBlackRookMoved: boolean;
+    public rightBlackRookMoved: boolean;
+}
+
+/**
+ * Game state
+ */
+interface ~GameState {
+    public history: Array<Snapshot>;
+    public stepNumber: int;
+    public whiteIsNext: boolean; // colorToMove
+    public pickedSquare: Coordinate; // activeTile
+    public validDestinations: Array<Coordinate>; // moveOptions and attackOptions
+}
+
+// ===== ONLINE IMPL. OF BISHOP ===== //
+
+private calculateDestinationsAttackedByBishop(squares: Array<Array<Piece>>,
+                                              figure: Piece, pos: Coordinate): Array<Coordinate> {
+    const row = pos.row;
+    const col = pos.col;
+    const result: Array<Coordinate> = new Array<Coordinate>();
+
+    // NORTH WEST, NORTH EAST, SOUTH EAST, SOUTH WEST
+    const deltas = [[-1,-1], [-1,1], [1,1], [1,-1]];
+    // Iterate 4 directions
+    for (let delta of deltas) {
+        let newPos = new Coordinate({row: row + delta[0], col: col + delta[1]});
+        while (this.isInsideBoard(newPos)) {
+            if (!squares[newPos.row][newPos.col]) {
+                // Square is not occupied
+                result.push(newPos);
+            } else {
+                // Square is occupied
+                if (this.isPositionOccupiedByFigureSameColor(squares, figure, newPos)) {
+                    break;
+                }
+                if (this.isPositionOccupiedByFigureOtherColor(squares, figure, newPos)) {
+                    result.push(newPos);
+                    break;
+                }
+            }
+            newPos = new Coordinate({row: newPos.row + delta[0], col: newPos.col + delta[1]});
+        }
+    }
+    return result;
+}
