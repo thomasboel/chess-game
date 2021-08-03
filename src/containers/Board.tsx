@@ -3,8 +3,14 @@ import styled from 'styled-components';
 
 import Tile from '../components/Tile';
 
+import { movePieceToTile } from '../pieces/PieceUtil';
+import { getPawnMoveOptions } from '../pieces/Pawn';
+import { getKnightMoveOptions } from '../pieces/Knight';
+import { getKingMoveOptions } from '../pieces/King';
+
 import { BoardState, Color, Piece, TileState } from '../util/interfaces';
-import { attackLog, getKnightMoveOptions, getPawnMoveOptions, initialBoardState, moveLog, movePieceToTile } from '../util/util';
+import { initialBoardState } from '../util/boardStates';
+import { attackLog, moveLog } from '../util/util';
 
 const Wrapper = styled.div`
   display: grid;
@@ -52,7 +58,7 @@ const Board = () => {
       showMoveOptions(tile);
     }
 
-    // If activeTile is not set at this point, the tile pressed was not a white piece
+    // If activeTile is not set at this point, the tile pressed was not a {colorToMove} piece
     if (!activeTile) return;
     
     // ===== Attacking the enemy =====
@@ -89,6 +95,9 @@ const Board = () => {
         break;
       case Piece.KNIGHT:
         tileOptions = getKnightMoveOptions(tile.piece, board);
+        break;
+      case Piece.KING:
+        tileOptions = getKingMoveOptions(tile.piece, board);
         break;
     }
 
